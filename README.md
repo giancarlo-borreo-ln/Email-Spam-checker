@@ -287,6 +287,17 @@ and the miss rate (spam classified as ham).
 `run_triage.sh` orchestrates a resumable two-pass run. It **never moves,
 deletes, or flags mail** — it writes JSONL files only.
 
+### Simple 10k run
+
+```bash
+./run_10k.sh
+```
+
+It asks for your email address, prints every message and model verdict live,
+and writes the same log to `logs.txt`. It uses `triage-10k/` as the output
+directory, so running it again resumes where it stopped. Set `LIMIT=500
+OUT_DIR=triage-pilot ./run_10k.sh` for a pilot. `Ctrl-C` stops it safely.
+
 ```bash
 # Pilot first: 500 messages, separate output directory, no mailbox changes.
 LIMIT=500 ./run_triage.sh

@@ -65,10 +65,27 @@ fi
 
 read -r -a FOLDER_LIST <<< "${FOLDERS:-INBOX}"
 
+# Interactive runs ask for the address once. Background runs must provide it.
+if [ -z "${EMAIL_ADDRESS:-}" ] && [ -t 0 ]; then
+  while [ -z "${EMAIL_ADDRESS:-}" ]; do
+    read -r -p "Email address: " EMAIL_ADDRESS || true
+  done
+  export EMAIL_ADDRESS
+fi
+if [ -z "${EMAIL_ADDRESS:-}" ]; then
+  echo "EMAIL_ADDRESS is not set and stdin is not interactive." >&2
+  echo "Run in a terminal, or set EMAIL_ADDRESS=you@example.com" >&2
+  exit 1
+fi
+
 mkdir -p "$OUT_DIR" logs
 LOG="${LOG_FILE:-logs/triage-$(date +%Y%m%d-%H%M%S).log}"
 mkdir -p "$(dirname "$LOG")"
-exec > >(tee -a "$LOG") 2>&1
+if command -v stdbuf >/dev/null 2>&1; then
+  exec > >(stdbuf -oL -eL tee -a "$LOG") 2>&1
+else
+  exec > >(tee -a "$LOG") 2>&1
+fi
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 die() { log "ERROR: $*"; exit 1; }
