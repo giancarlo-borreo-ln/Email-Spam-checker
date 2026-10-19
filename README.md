@@ -298,6 +298,18 @@ and writes the same log to `logs.txt`. It uses `triage-10k/` as the output
 directory, so running it again resumes where it stopped. Set `LIMIT=500
 OUT_DIR=triage-pilot ./run_10k.sh` for a pilot. `Ctrl-C` stops it safely.
 
+### Classification policy
+
+- **All publicity is spam**: marketing, advertising, sales, newsletters,
+  promotions, and brand updates — even if opted in and even with an
+  unsubscribe link.
+- **Personal, work, and human mail is ham.**
+- **Transactional/automated mail is ham**: receipts, shipping confirmations,
+  invoices, statements, appointments, security alerts, and password resets.
+- Senders listed in `allow.txt` are forced to ham before the model runs.
+  Matching is case-insensitive against From and Reply-To. `allow.txt` is local
+  and git-ignored; the default contains `Generation`.
+
 ```bash
 # Pilot first: 500 messages, separate output directory, no mailbox changes.
 LIMIT=500 ./run_triage.sh

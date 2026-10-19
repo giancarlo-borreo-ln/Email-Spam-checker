@@ -2,6 +2,7 @@
 .venv/
 credentials.json
 token.json
+allow.txt
 cleanup-audit*.csv
 llm-spam-cache.json
 llm-spam-verdicts.csv

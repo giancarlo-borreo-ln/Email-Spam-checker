@@ -62,6 +62,11 @@ VERBOSE_ARG=()
 if [ "$VERBOSE" = "1" ]; then
   VERBOSE_ARG=(--verbose)
 fi
+ALLOWLIST="${ALLOWLIST:-allow.txt}"
+ALLOW_ARG=()
+if [ -n "$ALLOWLIST" ] && [ -f "$ALLOWLIST" ]; then
+  ALLOW_ARG=(--allow "$ALLOWLIST")
+fi
 
 read -r -a FOLDER_LIST <<< "${FOLDERS:-INBOX}"
 
@@ -176,14 +181,14 @@ do_export() {
 
 do_pass_a() {
   local args=(pass-a --out-dir "$OUT_DIR" --model "$PASS_A_MODEL")
-  args+=("${VERBOSE_ARG[@]}")
+  args+=("${VERBOSE_ARG[@]}" "${ALLOW_ARG[@]}")
   [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
   "${PY[@]}" triage_pipeline.py "${args[@]}"
 }
 
 do_pass_b() {
   local args=(pass-b --out-dir "$OUT_DIR" --model "$PASS_B_MODEL")
-  args+=("${VERBOSE_ARG[@]}")
+  args+=("${VERBOSE_ARG[@]}" "${ALLOW_ARG[@]}")
   [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
   "${PY[@]}" triage_pipeline.py "${args[@]}"
 }
