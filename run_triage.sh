@@ -23,6 +23,7 @@
 #   VERBOSE=1                   log every message and every model verdict
 #   FOLDERS="INBOX"             space-separated folders to export
 #   LIMIT=500                   pilot on the first N messages
+#   OFFSET=0                    skip the first N UIDs (batch runs)
 #   MAX_ERROR_RATE=0.01         abort if a pass exceeds this error rate
 #   FORCE=1                     ignore .done markers and resume anyway
 #   FRESH=1                     clear .done markers (does NOT delete data)
@@ -57,6 +58,7 @@ PASS_C_MODEL="${PASS_C_MODEL:-qwen3.5:4b}"
 ENABLE_PASS_C="${ENABLE_PASS_C:-0}"
 SNIPPET_CHARS="${SNIPPET_CHARS:-600}"
 MAX_ERROR_RATE="${MAX_ERROR_RATE:-0.01}"
+OFFSET="${OFFSET:-0}"
 VERBOSE="${VERBOSE:-0}"
 VERBOSE_ARG=()
 if [ "$VERBOSE" = "1" ]; then
@@ -173,6 +175,9 @@ do_export() {
     args+=(--folder "$folder")
   done
   args+=("${VERBOSE_ARG[@]}")
+  if [ "$OFFSET" -gt 0 ]; then
+    args+=(--offset "$OFFSET")
+  fi
   if [ -n "${LIMIT:-}" ]; then
     args+=(--limit "$LIMIT")
   fi

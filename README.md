@@ -298,6 +298,25 @@ and writes the same log to `logs.txt`. It uses `triage-10k/` as the output
 directory, so running it again resumes where it stopped. Set `LIMIT=500
 OUT_DIR=triage-pilot ./run_10k.sh` for a pilot. `Ctrl-C` stops it safely.
 
+### All remaining 10k batches
+
+```bash
+./run_all_batches.sh
+```
+
+It waits for any active run to finish, then processes offset 10,000, 20,000,
+… into the same `triage-10k/` dataset, appending each batch and skipping already
+classified messages. It stops when a batch adds fewer than 10,000 new messages.
+For ~42k emails expect roughly 20 hours.
+
+To queue it in the background:
+
+```bash
+nohup env EMAIL_ADDRESS=you@example.com ./run_all_batches.sh \
+  >/tmp/opencode/batches.out 2>&1 &
+tail -f logs.txt
+```
+
 ### Classification policy
 
 - **All publicity is spam**: marketing, advertising, sales, newsletters,

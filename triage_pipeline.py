@@ -187,6 +187,8 @@ def cmd_export(args) -> int:
                 cm.select_folder(conn, folder, readonly=True)
                 uids = cm.uid_search(conn, "UNSEEN" if args.unseen_only else "ALL")
                 scanned += len(uids)
+                if args.offset:
+                    uids = uids[args.offset:]
                 if args.limit:
                     uids = uids[: args.limit - written]
 
@@ -259,6 +261,7 @@ def cmd_export(args) -> int:
         "new_records": written,
         "total_records": total,
         "snippet_chars": args.snippet_chars,
+        "offset": args.offset,
         "unseen_only": args.unseen_only,
     }
     write_json(out / "mailbox.meta.json", meta)
@@ -744,6 +747,8 @@ def build_parser() -> argparse.ArgumentParser:
                         help="folder to export; repeatable (default: INBOX)")
     export.add_argument("--snippet-chars", type=int, default=600)
     export.add_argument("--limit", type=int)
+    export.add_argument("--offset", type=int, default=0,
+                        help="skip the first N UIDs in each folder (batch runs)")
     export.add_argument("--unseen-only", action="store_true")
     export.add_argument("--verbose", action="store_true",
                         help="log every exported message")
