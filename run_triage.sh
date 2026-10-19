@@ -65,6 +65,18 @@ fi
 
 read -r -a FOLDER_LIST <<< "${FOLDERS:-INBOX}"
 
+mkdir -p "$OUT_DIR" logs
+
+# One run at a time. Check before prompting or writing to the shared log, so a
+# duplicate launch cannot pollute logs.txt or ask for credentials.
+exec 9>"$OUT_DIR/.triage.lock"
+if ! flock -n 9; then
+  echo "ERROR: another triage run holds $OUT_DIR/.triage.lock" >&2
+  echo "The existing run is still active. Monitor its terminal, or:" >&2
+  echo "  tail -f ${LOG_FILE:-logs.txt}" >&2
+  exit 1
+fi
+
 # Interactive runs ask for the address once. Background runs must provide it.
 if [ -z "${EMAIL_ADDRESS:-}" ] && [ -t 0 ]; then
   while [ -z "${EMAIL_ADDRESS:-}" ]; do
@@ -78,7 +90,6 @@ if [ -z "${EMAIL_ADDRESS:-}" ]; then
   exit 1
 fi
 
-mkdir -p "$OUT_DIR" logs
 LOG="${LOG_FILE:-logs/triage-$(date +%Y%m%d-%H%M%S).log}"
 mkdir -p "$(dirname "$LOG")"
 if command -v stdbuf >/dev/null 2>&1; then
@@ -89,12 +100,6 @@ fi
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 die() { log "ERROR: $*"; exit 1; }
-
-# One run at a time.
-exec 9>"$OUT_DIR/.triage.lock"
-if ! flock -n 9; then
-  die "another triage run holds $OUT_DIR/.triage.lock"
-fi
 
 trap 'log "interrupted"; exit 130' INT TERM
 

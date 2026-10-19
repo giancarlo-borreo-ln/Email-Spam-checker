@@ -182,47 +182,57 @@ def cmd_export(args) -> int:
                 if args.limit:
                     uids = uids[: args.limit - written]
 
-                headers = cm.fetch_headers(conn, uids, llm.HEADER_FIELDS)
-                snippets = (
-                    llm.fetch_snippets(conn, uids, args.snippet_chars)
-                    if args.snippet_chars
-                    else {}
-                )
+                chunk_size = 100
+                stop = False
+                for start in range(0, len(uids), chunk_size):
+                    chunk = uids[start:start + chunk_size]
+                    headers = cm.fetch_headers(conn, chunk, llm.HEADER_FIELDS)
+                    snippets = (
+                        llm.fetch_snippets(conn, chunk, args.snippet_chars)
+                        if args.snippet_chars
+                        else {}
+                    )
 
-                for uid in uids:
-                    payload = headers.get(uid)
-                    if payload is None:
-                        continue
-                    key = f"{folder.raw}:{uid.decode()}"
-                    if key in existing:
-                        continue
-                    meta = llm.meta_from_payload(uid, payload)
-                    row = {
-                        "key": key,
-                        "folder": folder.name,
-                        "folder_raw": folder.raw,
-                        "uid": meta.uid,
-                        "message_id": meta.message_id,
-                        "from": meta.from_,
-                        "reply_to": meta.reply_to,
-                        "subject": meta.subject,
-                        "date": meta.date,
-                        "list_unsubscribe": meta.list_unsubscribe,
-                        "auth_results": meta.auth_results,
-                        "snippet": snippets.get(uid, ""),
-                    }
-                    write_row(handle, row)
-                    existing.add(key)
-                    written += 1
-                    if args.verbose:
-                        print(
-                            f"[export] {folder.name}:{meta.uid} | "
-                            f"{meta.from_} | {meta.subject}",
-                            flush=True,
-                        )
-                    if written % 100 == 0:
-                        print(f"  exported {written} new / {len(existing)} total", flush=True)
-                    if args.limit and written >= args.limit:
+                    for uid in chunk:
+                        payload = headers.get(uid)
+                        if payload is None:
+                            continue
+                        key = f"{folder.raw}:{uid.decode()}"
+                        if key in existing:
+                            continue
+                        meta = llm.meta_from_payload(uid, payload)
+                        row = {
+                            "key": key,
+                            "folder": folder.name,
+                            "folder_raw": folder.raw,
+                            "uid": meta.uid,
+                            "message_id": meta.message_id,
+                            "from": meta.from_,
+                            "reply_to": meta.reply_to,
+                            "subject": meta.subject,
+                            "date": meta.date,
+                            "list_unsubscribe": meta.list_unsubscribe,
+                            "auth_results": meta.auth_results,
+                            "snippet": snippets.get(uid, ""),
+                        }
+                        write_row(handle, row)
+                        existing.add(key)
+                        written += 1
+                        if args.verbose:
+                            print(
+                                f"[export] {folder.name}:{meta.uid} | "
+                                f"{meta.from_} | {meta.subject}",
+                                flush=True,
+                            )
+                        if args.limit and written >= args.limit:
+                            stop = True
+                            break
+
+                    print(
+                        f"  exported {written} new / {len(existing)} total",
+                        flush=True,
+                    )
+                    if stop or (args.limit and written >= args.limit):
                         break
     finally:
         try:
