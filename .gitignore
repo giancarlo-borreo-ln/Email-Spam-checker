@@ -1,0 +1,16 @@
+.env
+.venv/
+credentials.json
+token.json
+cleanup-audit*.csv
+llm-spam-cache.json
+llm-spam-verdicts.csv
+llm-spam-audit.csv
+spam-benchmark-*
+triage*/
+triage-*/
+logs/
+logs.txt
+*.log
+__pycache__/
+.pytest_cache/

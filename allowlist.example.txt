@@ -1,0 +1,8 @@
+# Senders that must never be classified as spam.
+# One address or domain substring per line. Case-insensitive.
+# Matching is against both From and Reply-To.
+#
+# Examples:
+# bank.example
+# boss@work.example
+# noreply@github.com
