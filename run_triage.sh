@@ -16,7 +16,7 @@
 #   OUT_DIR=triage              output directory
 #   PASS_A_MODEL=qwen3.5:4b     first classifier
 #   PASS_B_MODEL=qwen3.5:4b     second classifier (or a different model)
-#   PASS_C_MODEL=qwen3:8b       tie-breaker for disagreements
+#   PASS_C_MODEL=qwen3.5:4b     tie-breaker for disagreements
 #   ENABLE_PASS_C=0             set to 1 to include pass-c in "all"
 #   SNIPPET_CHARS=600           body characters included per email (0 = headers)
 #   LOG_FILE=logs.txt           where to tee the full run log
@@ -52,7 +52,7 @@ if [ -n "${LIMIT:-}" ] && [ "$OUT_DIR" = "triage" ]; then
 fi
 PASS_A_MODEL="${PASS_A_MODEL:-qwen3.5:4b}"
 PASS_B_MODEL="${PASS_B_MODEL:-qwen3.5:4b}"
-PASS_C_MODEL="${PASS_C_MODEL:-qwen3:8b}"
+PASS_C_MODEL="${PASS_C_MODEL:-qwen3.5:4b}"
 ENABLE_PASS_C="${ENABLE_PASS_C:-0}"
 SNIPPET_CHARS="${SNIPPET_CHARS:-600}"
 MAX_ERROR_RATE="${MAX_ERROR_RATE:-0.01}"

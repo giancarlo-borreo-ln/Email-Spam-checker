@@ -308,6 +308,23 @@ Only messages where both passes agree go into `spam.jsonl` / `ham.jsonl`.
 Disagreements, missing results, and failures go to `review.jsonl` /
 `errors.jsonl`. Nothing is applied to the mailbox.
 
+### Optional pass C (disagreements only)
+
+`pass-c` re-checks **only** the A/B disagreements with a different judge prompt.
+It defaults to `qwen3.5:4b` (`PASS_C_MODEL`). At the default `--c-threshold
+0.90`, the 4B judge often abstains on hard disagreements; those stay in
+`review.jsonl` for manual review. Anything it does resolve goes to
+`review-resolved.jsonl`, never directly into `spam.jsonl` / `ham.jsonl`.
+
+```bash
+./run_triage.sh pass-c
+./run_triage.sh merge --c-threshold 0.90
+```
+
+Do not lower the threshold just to get answers: on the hard fake set, all of
+the 4B judge's correct resolutions were at 0.85, and its wrong ones were at
+0.75–0.85. Abstaining is the safer behavior.
+
 Useful settings:
 
 ```bash

@@ -665,7 +665,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     pass_c = sub.add_parser("pass-c", help="tie-break only review.jsonl disagreements")
     add_pass_args(pass_c)
-    pass_c.set_defaults(func=cmd_pass_c, model="qwen3:8b")
+    pass_c.set_defaults(func=cmd_pass_c, model=llm.DEFAULT_MODEL)
 
     validate = sub.add_parser("validate", help="check phase completeness")
     validate.add_argument("--out-dir", default="triage")
