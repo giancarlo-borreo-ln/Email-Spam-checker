@@ -344,10 +344,12 @@ def run_pass(args, phase: str) -> int:
             write_row(handle, row)
             if args.verbose:
                 print(
-                    f"[pass-{phase}] {record.get('folder')}:{record.get('uid')} "
-                    f"label={row['label']} conf={float(row['confidence']):.2f} "
-                    f"{latency:.0f}ms | {record.get('from', '')[:100]} | "
-                    f"{record.get('subject', '')[:100]} | {row.get('reason', '')[:120]}",
+                    f"[pass-{phase}] verdict={row['label'].upper()} "
+                    f"conf={float(row['confidence']):.2f} "
+                    f"| {row.get('reason', '')[:120]} "
+                    f"| {record.get('folder')}:{record.get('uid')} "
+                    f"| {record.get('from', '')[:100]} "
+                    f"| {record.get('subject', '')[:100]}",
                     flush=True,
                 )
             done.add(key)
@@ -496,11 +498,13 @@ def cmd_pass_c(args) -> int:
             write_row(handle, out_row)
             if args.verbose:
                 print(
-                    f"[pass-c] {key} A={a.get('label')} B={b.get('label')} "
-                    f"-> {out_row['label']} conf={float(out_row['confidence']):.2f} "
-                    f"| {record.get('from', '')[:100]} | "
-                    f"{record.get('subject', '')[:100]} | "
-                    f"{out_row.get('reason', '')[:120]}",
+                    f"[pass-c] verdict={out_row['label'].upper()} "
+                    f"conf={float(out_row['confidence']):.2f} "
+                    f"| {out_row.get('reason', '')[:120]} "
+                    f"| A={a.get('label')} B={b.get('label')} "
+                    f"| {key} "
+                    f"| {record.get('from', '')[:100]} "
+                    f"| {record.get('subject', '')[:100]}",
                     flush=True,
                 )
             done.add(key)

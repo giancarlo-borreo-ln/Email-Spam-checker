@@ -350,7 +350,7 @@ VERBOSE=1 LOG_FILE=logs.txt ./run_triage.sh
 `VERBOSE=1` logs every exported message and every model verdict in the form:
 
 ```text
-[pass-a] INBOX:123 label=spam conf=0.95 780ms | sender@example | Subject | reason
+[pass-a] verdict=SPAM conf=0.95 | phishing attempt with lookalike domain | INBOX:123 | sender@example | Subject
 ```
 
 Those logs contain message metadata and model reasons. They stay local:
