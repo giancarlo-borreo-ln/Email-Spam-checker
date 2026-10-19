@@ -331,7 +331,19 @@ Useful settings:
 PASS_A_MODEL=qwen3.5:4b PASS_B_MODEL=qwen3.5:4b ./run_triage.sh
 SNIPPET_CHARS=600 FOLDERS="INBOX" ./run_triage.sh
 MAX_ERROR_RATE=0.01 ./run_triage.sh
+
+# Per-message logging: sender, subject, verdict, confidence, latency, reason
+VERBOSE=1 LOG_FILE=logs.txt ./run_triage.sh
 ```
+
+`VERBOSE=1` logs every exported message and every model verdict in the form:
+
+```text
+[pass-a] INBOX:123 label=spam conf=0.95 780ms | sender@example | Subject | reason
+```
+
+Those logs contain message metadata and model reasons. They stay local:
+`logs.txt` and `logs/` are git-ignored. Do not publish them.
 
 The run is resumable: completed phases are marked with `.done`, and each pass
 skips keys already present. `FORCE=1` ignores `.done` markers but keeps the

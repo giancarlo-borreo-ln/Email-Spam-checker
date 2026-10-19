@@ -20,6 +20,7 @@
 #   ENABLE_PASS_C=0             set to 1 to include pass-c in "all"
 #   SNIPPET_CHARS=600           body characters included per email (0 = headers)
 #   LOG_FILE=logs.txt           where to tee the full run log
+#   VERBOSE=1                   log every message and every model verdict
 #   FOLDERS="INBOX"             space-separated folders to export
 #   LIMIT=500                   pilot on the first N messages
 #   MAX_ERROR_RATE=0.01         abort if a pass exceeds this error rate
@@ -56,6 +57,11 @@ PASS_C_MODEL="${PASS_C_MODEL:-qwen3.5:4b}"
 ENABLE_PASS_C="${ENABLE_PASS_C:-0}"
 SNIPPET_CHARS="${SNIPPET_CHARS:-600}"
 MAX_ERROR_RATE="${MAX_ERROR_RATE:-0.01}"
+VERBOSE="${VERBOSE:-0}"
+VERBOSE_ARG=()
+if [ "$VERBOSE" = "1" ]; then
+  VERBOSE_ARG=(--verbose)
+fi
 
 read -r -a FOLDER_LIST <<< "${FOLDERS:-INBOX}"
 
@@ -139,6 +145,7 @@ do_export() {
   for folder in "${FOLDER_LIST[@]}"; do
     args+=(--folder "$folder")
   done
+  args+=("${VERBOSE_ARG[@]}")
   if [ -n "${LIMIT:-}" ]; then
     args+=(--limit "$LIMIT")
   fi
@@ -147,18 +154,21 @@ do_export() {
 
 do_pass_a() {
   local args=(pass-a --out-dir "$OUT_DIR" --model "$PASS_A_MODEL")
+  args+=("${VERBOSE_ARG[@]}")
   [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
   "${PY[@]}" triage_pipeline.py "${args[@]}"
 }
 
 do_pass_b() {
   local args=(pass-b --out-dir "$OUT_DIR" --model "$PASS_B_MODEL")
+  args+=("${VERBOSE_ARG[@]}")
   [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
   "${PY[@]}" triage_pipeline.py "${args[@]}"
 }
 
 do_pass_c() {
   local args=(pass-c --out-dir "$OUT_DIR" --model "$PASS_C_MODEL")
+  args+=("${VERBOSE_ARG[@]}")
   [ -n "${LIMIT:-}" ] && args+=(--limit "$LIMIT")
   "${PY[@]}" triage_pipeline.py "${args[@]}"
 }

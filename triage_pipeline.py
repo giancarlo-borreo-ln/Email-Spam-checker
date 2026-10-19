@@ -168,6 +168,11 @@ def cmd_export(args) -> int:
             selected.append(folder)
 
         with mailbox_path.open("a", encoding="utf-8") as handle:
+            print(
+                f"export: folders={[folder.name for folder in selected]} "
+                f"snippet_chars={args.snippet_chars} limit={args.limit}",
+                flush=True,
+            )
             for folder in selected:
                 if args.limit and written >= args.limit:
                     break
@@ -209,6 +214,12 @@ def cmd_export(args) -> int:
                     write_row(handle, row)
                     existing.add(key)
                     written += 1
+                    if args.verbose:
+                        print(
+                            f"[export] {folder.name}:{meta.uid} | "
+                            f"{meta.from_} | {meta.subject}",
+                            flush=True,
+                        )
                     if written % 100 == 0:
                         print(f"  exported {written} new / {len(existing)} total", flush=True)
                     if args.limit and written >= args.limit:
@@ -280,6 +291,11 @@ def run_pass(args, phase: str) -> int:
     latencies: list[float] = []
 
     with pass_path.open("a", encoding="utf-8") as handle:
+        print(
+            f"pass-{phase}: model={args.model} prompt={prompt_version} "
+            f"num_ctx={args.num_ctx} to_process={len(records) - len(done)}",
+            flush=True,
+        )
         for record in records:
             key = record.get("key")
             if not key or key in done:
@@ -316,6 +332,14 @@ def run_pass(args, phase: str) -> int:
             latency = (time.perf_counter() - began) * 1000
             row["latency_ms"] = round(latency, 1)
             write_row(handle, row)
+            if args.verbose:
+                print(
+                    f"[pass-{phase}] {record.get('folder')}:{record.get('uid')} "
+                    f"label={row['label']} conf={float(row['confidence']):.2f} "
+                    f"{latency:.0f}ms | {record.get('from', '')[:100]} | "
+                    f"{record.get('subject', '')[:100]} | {row.get('reason', '')[:120]}",
+                    flush=True,
+                )
             done.add(key)
             processed += 1
             latencies.append(latency)
@@ -403,6 +427,11 @@ def cmd_pass_c(args) -> int:
     latencies: list[float] = []
 
     with pass_path.open("a", encoding="utf-8") as handle:
+        print(
+            f"pass-c: model={args.model} prompt={JUDGE_PROMPT_VERSION} "
+            f"disagreements={len(items)}",
+            flush=True,
+        )
         for row in items:
             key = row.get("key")
             if not key or key in done:
@@ -455,6 +484,15 @@ def cmd_pass_c(args) -> int:
             latency = (time.perf_counter() - began) * 1000
             out_row["latency_ms"] = round(latency, 1)
             write_row(handle, out_row)
+            if args.verbose:
+                print(
+                    f"[pass-c] {key} A={a.get('label')} B={b.get('label')} "
+                    f"-> {out_row['label']} conf={float(out_row['confidence']):.2f} "
+                    f"| {record.get('from', '')[:100]} | "
+                    f"{record.get('subject', '')[:100]} | "
+                    f"{out_row.get('reason', '')[:120]}",
+                    flush=True,
+                )
             done.add(key)
             processed += 1
             latencies.append(latency)
@@ -639,6 +677,8 @@ def add_pass_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--ollama-url", default=llm.DEFAULT_OLLAMA)
     parser.add_argument("--num-ctx", type=int, default=2048)
     parser.add_argument("--limit", type=int, help="classify only the first N exported messages")
+    parser.add_argument("--verbose", action="store_true",
+                        help="log every message and every model verdict")
     parser.add_argument("--retry-errors", action="store_true", default=True,
                         help="retry rows that previously failed (default: on)")
     parser.add_argument("--no-retry-errors", dest="retry_errors", action="store_false")
@@ -656,6 +696,8 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--snippet-chars", type=int, default=600)
     export.add_argument("--limit", type=int)
     export.add_argument("--unseen-only", action="store_true")
+    export.add_argument("--verbose", action="store_true",
+                        help="log every exported message")
     export.set_defaults(func=cmd_export)
 
     for name, func in (("pass-a", cmd_pass_a), ("pass-b", cmd_pass_b)):
