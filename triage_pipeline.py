@@ -361,15 +361,23 @@ def cmd_pass_b(args) -> int:
 
 
 def cmd_pass_c(args) -> int:
-    """Tie-break only the messages in review.jsonl (A/B disagreements)."""
+    """Tie-break only the messages where pass A and pass B disagree."""
     out = Path(args.out_dir).expanduser()
-    review = latest_by_key(out / "review.jsonl")
     mailbox = latest_by_key(out / "mailbox.jsonl")
-    if not review:
-        print("pass-c: review.jsonl is empty; nothing to tie-break")
-        return 0
+    pass_a = latest_by_key(out / "pass-a.jsonl")
+    pass_b = latest_by_key(out / "pass-b.jsonl")
 
-    items = list(review.values())
+    items = []
+    for key, a in pass_a.items():
+        b = pass_b.get(key)
+        if not b or a.get("status") != "ok" or b.get("status") != "ok":
+            continue
+        if a.get("label") != b.get("label"):
+            items.append({"key": key, "a": a, "b": b})
+
+    if not items:
+        print("pass-c: no A/B disagreements; nothing to tie-break")
+        return 0
     if args.limit:
         items = items[: args.limit]
 
